@@ -41,7 +41,7 @@ PAGES = {'fd': 'index.phtml', 'dl': 'downxls.php', 'jv': 'json_v2.php',
          'zz500wt':'000905closeweight.xls',
          't_ticks':'vMS_tradedetail.php', 'dw': 'downLoad.html',
          'qmd':'queryMargin.do', 'szsefc':'ShowReport.szse',
-         'ssecq':'commonQuery.do', 'sinadd':'cn_bill_download.php', 'ids_sw':'SwHy.php',
+         'ssecq':'security/stock/getStockListData2.do', 'sinadd':'cn_bill_download.php', 'ids_sw':'SwHy.php',
          'idx': 'index.php', 'index': 'index.html'}
 TICK_COLUMNS = ['time', 'price', 'change', 'volume', 'amount', 'type']
 TODAY_TICK_COLUMNS = ['time', 'price', 'pchange', 'change', 'volume', 'amount', 'type']
@@ -67,7 +67,6 @@ INX_DAY_PRICE_COLUMNS = ['date', 'open', 'high', 'close', 'low', 'volume', 'pric
 LIVE_DATA_COLS = ['name', 'open', 'pre_close', 'price', 'high', 'low', 'bid', 'ask', 'volume', 'amount',
                   'b1_v', 'b1_p', 'b2_v', 'b2_p', 'b3_v', 'b3_p', 'b4_v', 'b4_p', 'b5_v', 'b5_p',
                   'a1_v', 'a1_p', 'a2_v', 'a2_p', 'a3_v', 'a3_p', 'a4_v', 'a4_p', 'a5_v', 'a5_p', 'date', 'time', 's']
-US_LIVE_DATA_COLS = ['name', 'price', 'change_percent', 'time', 'change', 'open', 'high', 'low', 'high_52week', 'low_52week', 'volume', 'volume_average', 'mktcap', 'eps', 'pe', 'fpe', 'beta', 'dividend', 'earnings_yield', 'totals', 'instown', 'extended_price', 'extended_change_percent', 'extended_change', 'extended_time', 'time_est', 'pre_close', 'extended_volume']
 FOR_CLASSIFY_COLS = ['code','name']
 FOR_CLASSIFY_B_COLS = ['date', 'code','name']
 FOR_CLASSIFY_W_COLS = ['date','code', 'name', 'weight']
@@ -124,7 +123,7 @@ GPZY_D_URL = '%s%s/tsdata/gpzy/%s.csv'
 SHS_FAC_URL = '%s%s/tsdata/shares/%s.csv'
 ZF = '%s%s/tsdata/%s.csv'
 INDEX_HQ_URL = '''%shq.%s/rn=xppzh&list=sh000001,sh000002,sh000003,sh000008,sh000009,sh000010,sh000011,sh000012,sh000016,sh000017,sh000300,sh000905,sz399001,sz399002,sz399003,sz399004,sz399005,sz399006,sz399008,sz399100,sz399101,sz399106,sz399107,sz399108,sz399333,sz399606'''
-SSEQ_CQ_REF_URL = '%s%s/assortment/stock/list/name'
+SSEQ_CQ_REF_URL = '%s%s/assortment/stock/list/delisting'
 ALL_STK_URL = '%s%s/all.csv'
 SINA_DD = '%s%s/quotes_service/view/%s?symbol=%s&num=60&page=1&sort=ticktime&asc=0&volume=%s&amount=0&type=0&day=%s'
 BOX = 'boxOffice'
@@ -167,7 +166,7 @@ BAR_X_FUTURE_RL_COLS = ['code', 'open', 'close', 'high', 'low', 'vol', 'avg_pric
 BAR_X_OTHER_COLS = ['code', 'open', 'close', 'high', 'low', 'vol']
 T_DROP_COLS = ['year', 'month', 'day', 'hour','minute']
 LPR_MA_COLS = ['date', '1Y_5', '1Y_10', '1Y_20']
-INDEX_HEADER = 'code,name,open,preclose,close,high,low,0,0,volume,amount,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,d,c,3\n'
+INDEX_HEADER = 'code,name,open,preclose,close,high,low,0,0,volume,amount,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,d,c,3,\n'
 INDEX_COLS = ['code', 'name', 'change', 'open', 'preclose', 'close', 'high', 'low', 'volume', 'amount']
 HIST_FQ_COLS = ['date', 'open', 'high', 'close', 'low', 'volume', 'amount', 'factor']
 SINA_DD_COLS = ['code', 'name', 'time', 'price', 'volume', 'preprice', 'type']
@@ -412,8 +411,6 @@ def _code_to_symbol(code):
     '''
     if code in INDEX_LABELS:
         return INDEX_LIST[code]
-    elif code[:3] == 'gb_':
-        return code
     else:
         if len(code) != 6 :
             return code

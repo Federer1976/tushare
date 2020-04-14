@@ -4,7 +4,6 @@
 import numpy as np
 import pandas as pd
 
-
 def EMA(DF, N):
     return pd.Series.ewm(DF, span=N, min_periods=N - 1, adjust=True).mean()
 

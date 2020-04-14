@@ -17,7 +17,6 @@ import numpy as np
 import datetime
 from tushare.stock import cons as ct
 import re
-from pandas.compat import StringIO
 from tushare.util import dateu as du
 from tushare.util.formula import MA
 import os
@@ -27,7 +26,11 @@ try:
     from urllib.request import urlopen, Request
 except ImportError:
     from urllib2 import urlopen, Request
-
+v = pd.__version__ 
+if int(v.split('.')[1])>=25 or int(v.split('.')[0])>0:
+    from io import StringIO
+else:    
+    from pandas.compat import StringIO
 
 def get_hist_data(code=None, start=None, end=None,
                   ktype='D', retry_count=3,
@@ -372,21 +375,18 @@ def get_realtime_quotes(symbols=None):
     text = text.decode('GBK')
     reg = re.compile(r'\="(.*?)\";')
     data = reg.findall(text)
-    regSym = re.compile(r'(?:sh|sz|gb_)(.*?)\=')
+    regSym = re.compile(r'(?:sh|sz)(.*?)\=')
     syms = regSym.findall(text)
     data_list = []
     syms_list = []
     for index, row in enumerate(data):
         if len(row)>1:
-            data_list.append([astr for astr in row.split(',')])
+            data_list.append([astr for astr in row.split(',')[:33]])
             syms_list.append(syms[index])
     if len(syms_list) == 0:
         return None
-    if len(data_list[0]) == 28:
-        df = pd.DataFrame(data_list, columns=ct.US_LIVE_DATA_COLS)
-    else:
-        df = pd.DataFrame(data_list, columns=ct.LIVE_DATA_COLS)
-        df = df.drop('s', axis=1)
+    df = pd.DataFrame(data_list, columns=ct.LIVE_DATA_COLS)
+    df = df.drop('s', axis=1)
     df['code'] = syms_list
     ls = [cls for cls in df.columns if '_v' in cls]
     for txt in ls:
@@ -811,9 +811,9 @@ def bar2h5(market='', date='', freq='D', asset='E', filepath=''):
     store = pd.HDFStore(fname, "a")
     if market in ['SH', 'SZ']:
         if market == 'SH':
-            stks = stks.ix[stks.index.str[0]=='6', :]
+            stks = stks.loc[stks.index.str[0]=='6', :]
         elif market == 'SZ':
-            stks = stks.ix[stks.index.str[0]!='6', :]
+            stks = stks.loc[stks.index.str[0]!='6', :]
         else:
             stks = ''
         market = 1 if market == 'SH' else 0
@@ -989,7 +989,7 @@ def bar(code, conn=None, start_date=None, end_date=None, freq='D', asset='E',
                         data['adj_factor'] = data['adj_factor'].fillna(method='bfill')
                     else:
                         def get_val(day):
-                            return df.ix[day]['adj_factor']
+                            return df.loc[day]['adj_factor']
                         data['adj_factor'] = data.index.map(lambda x: get_val(str(x)[0:10]))
                     for col in ct.BAR_E_COLS[1:5]:
                         if adj == 'hfq':
@@ -1006,7 +1006,7 @@ def bar(code, conn=None, start_date=None, end_date=None, freq='D', asset='E',
                             data['floats'] = data['floats'].fillna(method='bfill')
                         else:
                             def get_val(day):
-                                return df.ix[day]['floats']
+                                return df.loc[day]['floats']
                             data['floats'] = data.index.map(lambda x: get_val(str(x)[0:10]))
                         data['tor'] = data['vol'] / data['floats'] 
                         data['tor'] = data['tor'].map(ct.FORMAT)
@@ -1278,4 +1278,11 @@ def _random(n=13):
     return str(randint(start, end))
 
 
-
+if __name__ == '__main__':
+    from tushare.util.conns import get_apis, close_apis
+    cons = get_apis()
+    df = bar('rb2001', conn=cons, asset='X', freq='1min')
+    print(df)
+    close_apis(cons)
+    
+    

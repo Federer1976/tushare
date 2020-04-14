@@ -17,8 +17,11 @@ MAR_SH_MX_URL = '%s%s/marketdata/tradedata/%s?jsonCallBack=jsonpCallback%s&isPag
 MAR_SZ_HZ_URL = '%s%s/szseWeb/%s?SHOWTYPE=EXCEL&ACTIONID=8&CATALOGID=1837_xxpl&txtDate=%s&tab2PAGENUM=1&ENCODE=1&TABKEY=tab1'
 MAR_SZ_MX_URL = '%s%s/szseWeb/%s?SHOWTYPE=EXCEL&ACTIONID=8&CATALOGID=1837_xxpl&txtDate=%s&tab2PAGENUM=1&ENCODE=1&TABKEY=tab2'
 MAR_SH_HZ_TAIL_URL = '&pageHelp.pageNo=%s&pageHelp.beginPage=%s&pageHelp.endPage=%s'
-TERMINATED_URL = '%s%s/%s?jsonCallBack=jsonpCallback%s&isPagination=true&sqlId=COMMON_SSE_ZQPZ_GPLB_MCJS_ZZSSGGJBXX_L&pageHelp.pageSize=50&_=%s'
+# TERMINATED_URL = '%s%s/%s?jsonCallBack=jsonpCallback%s&isPagination=true&sqlId=COMMON_SSE_ZQPZ_GPLB_MCJS_ZZSSGGJBXX_L&pageHelp.pageSize=50&_=%s'
+TERMINATED_URL = '%s%s/%s?&jsonCallBack=jsonpCallback%s&isPagination=true&stockCode=&csrcCode=&areaName=&stockType=%s&pageHelp.cacheSize=1&pageHelp.beginPage=1&pageHelp.pageSize=500&pageHelp.pageNo=1&_=%s'
+
 SUSPENDED_URL = '%s%s/%s?jsonCallBack=jsonpCallback%s&isPagination=true&sqlId=COMMON_SSE_ZQPZ_GPLB_MCJS_ZTSSGS_L&pageHelp.pageSize=50&_=%s'
+
 TOP10_HOLDERS_URL = '%swebf10.%s/SDGD/SD%sGD%s.js'
 TOP10_SUMM_COLS = ['quarter', 'amount', 'changed' ,'props']
 TOP10_PER_COLS = ['quarter', 'name', 'hold', 'h_pro', 'sharetype', 'status']

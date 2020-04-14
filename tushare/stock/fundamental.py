@@ -12,7 +12,11 @@ import lxml.html
 from lxml import etree
 import re
 import time
-from pandas.compat import StringIO
+v = pd.__version__ 
+if int(v.split('.')[1])>=25 or int(v.split('.')[0])>0:
+    from io import StringIO
+else:    
+    from pandas.compat import StringIO
 from tushare.util import dateu as du
 try:
     from urllib.request import urlopen, Request

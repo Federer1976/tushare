@@ -222,7 +222,7 @@ def get_nav_history(code, start=None, end=None, retry_count=3, pause=0.001, time
     ismonetary = False  # 是否是债券型和货币型基金
     df_fund = get_fund_info(code)
 
-    fund_type = df_fund.ix[0]['Type2Name']
+    fund_type = df_fund.loc[0]['Type2Name']
     if (fund_type.find(u'债券型') != -1) or (fund_type.find(u'货币型') != -1):
         ismonetary = True
 

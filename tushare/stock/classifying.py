@@ -13,7 +13,6 @@ from tushare.stock import cons as ct
 from tushare.stock import ref_vars as rv
 import json
 import re
-from pandas.util.testing import _network_error_classes
 import time
 import tushare.stock.fundamental as fd
 from tushare.util.netbase import Client
@@ -144,7 +143,7 @@ def get_gem_classified():
     df = fd.get_stock_basics()
     df.reset_index(inplace=True)
     df = df[ct.FOR_CLASSIFY_COLS]
-    df = df.ix[df.code.str[0] == '3']
+    df = df.loc[df.code.str[0] == '3']
     df = df.sort_values('code').reset_index(drop=True)
     return df
     
@@ -161,7 +160,7 @@ def get_sme_classified():
     df = fd.get_stock_basics()
     df.reset_index(inplace=True)
     df = df[ct.FOR_CLASSIFY_COLS]
-    df = df.ix[df.code.str[0:3] == '002']
+    df = df.loc[df.code.str[0:3] == '002']
     df = df.sort_values('code').reset_index(drop=True)
     return df 
 
@@ -177,7 +176,7 @@ def get_st_classified():
     df = fd.get_stock_basics()
     df.reset_index(inplace=True)
     df = df[ct.FOR_CLASSIFY_COLS]
-    df = df.ix[df.name.str.contains('ST')]
+    df = df.loc[df.name.str.contains('ST')]
     df = df.sort_values('code').reset_index(drop=True)
     return df 
 
@@ -197,7 +196,7 @@ def _get_detail(tag, retry_count=3, pause=0.001):
                                                                    p,tag))
                 text = urlopen(request, timeout=10).read()
                 text = text.decode('gbk')
-            except _network_error_classes:
+            except:
                 pass
             else:
                 break
@@ -303,22 +302,11 @@ def get_terminated():
         oDate:上市日期
         tDate:终止上市日期 
     """
-    try:
-        
-        ref = ct.SSEQ_CQ_REF_URL%(ct.P_TYPE['http'], ct.DOMAINS['sse'])
-        clt = Client(rv.TERMINATED_URL%(ct.P_TYPE['http'], ct.DOMAINS['sseq'],
-                                    ct.PAGES['ssecq'], _random(5),
-                                    _random()), ref=ref, cookie=rv.MAR_SH_COOKIESTR)
-        lines = clt.gvalue()
-        lines = lines.decode('utf-8') if ct.PY3 else lines
-        lines = lines[19:-1]
-        lines = json.loads(lines)
-        df = pd.DataFrame(lines['result'], columns=rv.TERMINATED_T_COLS)
-        df.columns = rv.TERMINATED_COLS
-        return df
-    except Exception as er:
-        print(str(er))      
+    dfSSE1 = get_delisted_for_sse('5')   # 上交所主板
+    dfSSE2 = get_delisted_for_sse('15')  # 上交所科创
+    df = get_delisted_for_szse('2')      # 深交所
 
+    return df.append([dfSSE1, dfSSE2], ignore_index=True)
 
 def get_suspended():
     """
@@ -331,28 +319,84 @@ def get_suspended():
         oDate:上市日期
         tDate:终止上市日期 
     """
+    dfSSE1 = get_delisted_for_sse('4')    # 上交所主板
+    dfSSE2 = get_delisted_for_sse('14')   # 上交所科创
+    df = get_delisted_for_szse('1')       # 深交所
+
+    return df.append([dfSSE1, dfSSE2], ignore_index=True)
+
+def get_delisted_for_sse(stockType:str):
+    """
+    获取上交所终止或暂停上市股票列表，url: http://www.sse.com.cn/assortment/stock/list/delisting/
+    Param:
+    stockType：取值：终止上市-（5:主板，15:科创板），暂停上市-（4:主板，14:科创板）
+
+    Return
+    --------
+    DataFrame
+        code :股票代码
+        name :股票名称
+        oDate:上市日期
+        tDate:终止上市日期
+    """
     try:
-        
-        ref = ct.SSEQ_CQ_REF_URL%(ct.P_TYPE['http'], ct.DOMAINS['sse'])
-        clt = Client(rv.SUSPENDED_URL%(ct.P_TYPE['http'], ct.DOMAINS['sseq'],
-                                    ct.PAGES['ssecq'], _random(5),
-                                    _random()), ref=ref, cookie=rv.MAR_SH_COOKIESTR)
+
+        ref = ct.SSEQ_CQ_REF_URL % (ct.P_TYPE['http'], ct.DOMAINS['sse'])
+        clt = Client(rv.TERMINATED_URL % (ct.P_TYPE['http'], ct.DOMAINS['sseq'],
+                                          ct.PAGES['ssecq'], _random(5), stockType,
+                                          _random()), ref=ref, cookie=rv.MAR_SH_COOKIESTR)
         lines = clt.gvalue()
         lines = lines.decode('utf-8') if ct.PY3 else lines
         lines = lines[19:-1]
         lines = json.loads(lines)
         df = pd.DataFrame(lines['result'], columns=rv.TERMINATED_T_COLS)
+
         df.columns = rv.TERMINATED_COLS
         return df
     except Exception as er:
-        print(str(er))   
-            
+        print(str(er))
 
+def get_delisted_for_szse(tabKey:str):
+    """
+    获取深交所终止或暂停上市股票列表，url: http://www.szse.cn/market/companys/suspend/index.html
+    Param:
+    tabKey：取值：1-暂停上市，2-终止上市
+
+    Return
+    --------
+    DataFrame
+        code :股票代码
+        name :股票名称
+        oDate:上市日期
+        tDate:终止上市日期
+    """
+    from random import random
+
+    try:
+
+        url = '%s%s/api/report/ShowReport?SHOWTYPE=xlsx&' \
+              'CATALOGID=1793_ssgs&TABKEY=tab%s&random=%s'\
+              % (ct.P_TYPE['http'], ct.DOMAINS['szse'],
+                 tabKey, '%.16f'%random())
+
+        df = pd.read_excel(url, dtype={'证券代码': str})
+
+        df.columns = rv.TERMINATED_COLS
+        return df
+    except Exception as er:
+        print(str(er))
 
 def _random(n=13):
     from random import randint
     start = 10**(n-1)
     end = (10**n)-1
-    return str(randint(start, end))  
+    return str(randint(start, end))
+
+if __name__ == '__main__':
+    # df = get_delisted_for_sse('5')
+    # df = get_delisted_for_szse('1')
+    # df = get_terminated()
+    df = get_gem_classified()
+    print(df)
 
 

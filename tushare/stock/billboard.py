@@ -9,7 +9,11 @@ Created on 2015年6月10日
 """
 
 import pandas as pd
-from pandas.compat import StringIO
+v = pd.__version__ 
+if int(v.split('.')[1])>=25 or int(v.split('.')[0])>0:
+    from io import StringIO
+else:    
+    from pandas.compat import StringIO
 from tushare.stock import cons as ct
 import numpy as np
 import time

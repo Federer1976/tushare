@@ -11,7 +11,7 @@ import numpy as np
 from tushare.stock import cons as ct
 from tushare.util import dateu as du
 from tushare.util.netbase import Client
-from pandas.compat import StringIO
+from six import BytesIO
 
 def shibor_data(year=None):
     """
@@ -41,7 +41,7 @@ def shibor_data(year=None):
                                                year, lab,
                                                year))
         content = clt.gvalue()
-        df = pd.read_excel(StringIO(content))
+        df = pd.read_excel(BytesIO(content))
         df.columns = ct.SHIBOR_COLS
         df['date'] = df['date'].map(lambda x: x.date())
         if pd.__version__ < '0.21':
@@ -90,7 +90,7 @@ def shibor_quote_data(year=None):
                                                year, lab,
                                                year))
         content = clt.gvalue()
-        df = pd.read_excel(StringIO(content), skiprows=[0])
+        df = pd.read_excel(BytesIO(content), skiprows=[0])
 #         df.columns = ct.QUOTE_COLS
         df.columns = ct.SHIBOR_Q_COLS
         df['date'] = df['date'].map(lambda x: x.date())
@@ -123,7 +123,7 @@ def shibor_ma_data(year=None):
                                                year, lab,
                                                year))
         content = clt.gvalue()
-        df = pd.read_excel(StringIO(content), skiprows=[0])
+        df = pd.read_excel(BytesIO(content), skiprows=[0])
         df.columns = ct.SHIBOR_MA_COLS
         df['date'] = df['date'].map(lambda x: x.date())
         if pd.__version__ < '0.21':
@@ -156,7 +156,7 @@ def lpr_data(year=None):
                                                year, lab,
                                                year))
         content = clt.gvalue()
-        df = pd.read_excel(StringIO(content), skiprows=[0])
+        df = pd.read_excel(BytesIO(content), skiprows=[0])
         df.columns = ct.LPR_COLS
         df['date'] = df['date'].map(lambda x: x.date())
         if pd.__version__ < '0.21':
@@ -191,7 +191,7 @@ def lpr_ma_data(year=None):
                                                year, lab,
                                                year))
         content = clt.gvalue()
-        df = pd.read_excel(StringIO(content), skiprows=[0])
+        df = pd.read_excel(BytesIO(content), skiprows=[0])
         df.columns = ct.LPR_MA_COLS
         df['date'] = df['date'].map(lambda x: x.date())
         if pd.__version__ < '0.21':
@@ -202,5 +202,11 @@ def lpr_ma_data(year=None):
     except:
         return None
     
-    
+if __name__ == '__main__':
+    x = shibor_data()
+    y = lpr_ma_data()
+    a = shibor_ma_data()
+    b = shibor_quote_data()
+    c = lpr_data()
+    print(x,y,a,b,c)
 

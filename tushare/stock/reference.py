@@ -16,7 +16,11 @@ import lxml.html
 from lxml import etree
 import re
 import json
-from pandas.compat import StringIO
+v = pd.__version__ 
+if int(v.split('.')[1])>=25 or int(v.split('.')[0])>0:
+    from io import StringIO
+else:    
+    from pandas.compat import StringIO
 from tushare.util import dateu as du
 from tushare.util.netbase import Client
 try:
@@ -419,8 +423,7 @@ def new_stocks(retry_count=3, pause=0.001):
     """
     data = pd.DataFrame()
     ct._write_head()
-    df = _newstocks(data, 1, retry_count,
-                    pause)
+    df = _newstocks(data, 1, retry_count, pause)
     return df
 
 
@@ -429,8 +432,11 @@ def _newstocks(data, pageNo, retry_count, pause):
         time.sleep(pause)
         ct._write_console()
         try:
-            html = lxml.html.parse(rv.NEW_STOCKS_URL%(ct.P_TYPE['http'],ct.DOMAINS['vsf'],
+            request = Request(rv.NEW_STOCKS_URL%(ct.P_TYPE['http'],ct.DOMAINS['vsf'],
                          ct.PAGES['newstock'], pageNo))
+            text = urlopen(request, timeout=10).read()
+            text = text.decode('GBK')
+            html = lxml.html.parse(StringIO(text))
             res = html.xpath('//table[@id=\"NewStockTable\"]/tr')
             if len(res) == 0:
                 return data
@@ -442,7 +448,7 @@ def _newstocks(data, pageNo, retry_count, pause):
             sarr = sarr.replace('<font color="red">*</font>', '')
             sarr = '<table>%s</table>'%sarr
             df = pd.read_html(StringIO(sarr), skiprows=[0, 1])[0]
-            df = df.drop([df.columns[idx] for idx in [12, 13, 14]], axis=1)
+            df = df.drop([df.columns[idx] for idx in [12, 13, 14, 15]], axis=1)
             df.columns = rv.NEW_STOCKS_COLS
             df['code'] = df['code'].map(lambda x : str(x).zfill(6))
             df['xcode'] = df['xcode'].map(lambda x : str(x).zfill(6))
@@ -1089,4 +1095,6 @@ def _random(n=13):
     return str(randint(start, end))
 
 
-
+if __name__ == '__main__':
+    df = new_stocks()
+    print(df)
